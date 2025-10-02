@@ -208,3 +208,38 @@ exports.getCommentsForPost = async (req, res) => {
         });
     }
 };
+
+
+
+exports.deleteComment = async (req, res) => {
+  try {
+    const { commentId } = req.body;
+    const userId = req.user.id; // currently logged-in user
+
+    if (!commentId) {
+      return res.status(400).json({ success: false, message: "Comment ID required" });
+    }
+
+    const comment = await PostComment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ success: false, message: "Comment not found" });
+    }
+
+    // Check if user is admin
+    const adminUser = await User.findById(userId);
+    if (!adminUser || adminUser.accountType !== "Admin") {
+      return res.status(403).json({ success: false, message: "Only admin can delete comments" });
+    }
+
+    // Remove comment reference from post
+    await Post.findByIdAndUpdate(comment.post, { $pull: { postComment: comment._id } });
+
+    // Delete comment
+    await PostComment.findByIdAndDelete(comment._id);
+
+    return res.status(200).json({ success: true, message: "Comment deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Failed to delete comment", error: err.message });
+  }
+};

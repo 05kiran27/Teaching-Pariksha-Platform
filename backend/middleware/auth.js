@@ -38,20 +38,27 @@ exports.auth = async (req, res, next) => {
     }
 };
 
-// isAdmin
-exports.isAdmin = async (req, res, next) => {
+
+// Middleware to verify JWT token
+exports.verifyToken = async (req, res, next) => {
+    const token = req.cookies.token || req.body.token || req.header("Authorization")?.replace("Bearer ", "");
+    if (!token) return res.status(401).json({ message: "No token provided" });
+
     try {
-        if (req.user.accountType !== "Admin") {
-            return res.status(401).json({
-                success: false,
-                message: "Access denied. Admins only",
-            });
-        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = await User.findById(decoded.id).select("-password");
+        if (!req.user) return res.status(401).json({ message: "User not found" });
         next();
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Error verifying user role, please try again",
-        });
+    } catch (err) {
+        return res.status(401).json({ message: "Invalid token" });
     }
 };
+
+// Middleware to allow only Admin users
+exports.isAdmin = (req, res, next) => {
+  if (req.user.accountType?.toLowerCase() !== "admin") {
+    return res.status(403).json({ message: "Access denied: Admins only" });
+  }
+  next();
+};
+

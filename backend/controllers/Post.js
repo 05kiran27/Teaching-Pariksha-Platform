@@ -3,86 +3,148 @@ const User = require('../models/User');
 const uploadFileToCloudinary = require('../utils/fileUpload');
 const postLike = require('../models/PostLike');
 
-// create course handler function
-exports.createPost = async (req,res) => {
-    try{
-        // fetch data
-        const {postTitle, postDescription} = req.body;
+// exports.createPost = async (req,res) => {
 
-        console.log('post Title -> ', postTitle);
-        console.log('post description -> ', postDescription);
+//     try {
+//         const { postTitle, postDescription } = req.body;
+//         const thumbnail = req.files.thumbnailImage;
 
-        // get thumbnails
-        const thumbnail = req.files.thumbnailImage;
+//         if(!postTitle || !postDescription){
+//             return res.status(400).json({
+//                 success:false,
+//                 message:"All fields are required",
+//             });
+//         }
 
-        // validation
-        if(!postTitle || !postDescription){
-            return res.status(400).json({
-                success:false,
-                message:"All fields are required",
-            });
-        }
+//         const userId = req.user.id;
+//         const userDetails = await User.findById(userId);
 
-        // user details
-        const userId = req.user.id;
-        const userDetails = await User.findById(userId);
-        console.log("userDetails details -> ", userDetails);
+//         if(!userDetails){
+//             return res.status(404).json({
+//                 success:false,
+//                 message:"user not found, please login ",
+//             });
+//         }
 
-        if(!userDetails){
-            return res.status(404).json({
-                success:false,
-                message:"user not found, please login ",
-            });
-        }
+//         if (userDetails.accountType !== "Admin") {
+//             return res.status(403).json({
+//                 success: false,
+//                 message: "Only admins are allowed to create posts",
+//             });
+//         }
 
-        // upload image to cloudinary
-        console.log("thumbnail -> ", thumbnail);
-        const thumbnailImage = await uploadFileToCloudinary(thumbnail, process.env.FOLDER_NAME);
-        console.log('thumbnail image => ', thumbnailImage);
+//         const thumbnailImage = await uploadFileToCloudinary(thumbnail, process.env.FOLDER_NAME);
 
-        // post like
-        const postLikeDetails = await postLike.create({
-            postUser:null,
-        })
+//         // create post with empty likes/comments
+//         const newPost = await Post.create({
+//             postTitle,
+//             postDescription,
+//             user: userDetails._id,
+//             postImage: thumbnailImage.secure_url,
+//             postLikes: [],
+//             postComment: []
+//         });
 
-        // create an entry of new post
-        const newPost = await Post.create({
-            postTitle,
-            postDescription,
-            user:userDetails._id,
-            postImage: thumbnailImage.secure_url,
-            postLikes:postLikeDetails,
-        });
-        console.log('new post => ', newPost);
+//         // push the post to user
+//         await User.findByIdAndUpdate(
+//             userDetails._id,
+//             { $push: { post: newPost._id } },
+//             { new: true }
+//         );
 
-        // add the post into the user schema of instructor
-        await User.findByIdAndUpdate(
-            {_id:userDetails._id},
-            {
-                $push:{
-                    post:newPost._id,
-                }
-            },
-            {new:true},
-        );
+//         return res.status(200).json({
+//             success:true,
+//             message:"post created successfully",
+//             data:newPost,
+//         });
 
-        // return res
-        return res.status(200).json({
-            success:true,
-            message:"post created successfully",
-            data:newPost,
-        });
+//     } catch(error) {
+//         console.log(error);
+//         return res.status(500).json({
+//             success:false,
+//             message:'failed to create a post',
+//             error: error.message,
+//         });
+//     }
+// };
 
+
+// for admin  // assuming you have this
+
+exports.createPost = async (req, res) => {
+  try {
+    const { postTitle, postDescription } = req.body;
+    const thumbnail = req.files?.thumbnailImage;
+
+    // Validation
+    if (!postTitle || !postDescription) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
-    catch(error){
-        console.log(error);
-        return res.status(500).json({
-            success:false,
-            message:'failed to create a post',
-            message:error.message,
-        });
+
+    // Get user details
+    const userId = req.user.id;
+    const userDetails = await User.findById(userId);
+
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found, please login",
+      });
     }
+
+    // Only Admin can create posts
+    if (userDetails.accountType !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admins are allowed to create posts",
+      });
+    }
+
+    // Upload thumbnail
+    let thumbnailImageUrl = "";
+    if (thumbnail) {
+      const uploaded = await uploadFileToCloudinary(
+        thumbnail,
+        process.env.FOLDER_NAME
+      );
+      thumbnailImageUrl = uploaded.secure_url;
+    }
+
+    // Create new Post with empty likes and comments
+    const newPost = await Post.create({
+      postTitle,
+      postDescription,
+      user: userDetails._id,
+      postImage: thumbnailImageUrl,
+      postLikes: [],   // empty array
+      postComment: [], // empty array
+    });
+
+    // Add post reference to user
+    await User.findByIdAndUpdate(
+      userDetails._id,
+      { $push: { post: newPost._id } },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Post created successfully",
+      data: newPost,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create post",
+      error: error.message,
+    });
+  }
 };
+
 
 
 // update post
@@ -214,66 +276,62 @@ exports.updatePost = async (req,res) => {
 
 
 // delete post 
-exports.deletePost = async (req,res) => {
-    try{
+exports.deletePost = async (req, res) => {
+    try {
         // fetch post id
-        const {postId} = req.body;
+        const { postId } = req.body;
 
         const userId = req.user.id;
+        const userRole = req.user.accountType; // assuming accountType is stored in JWT or req.user
 
         // validation
-        if(!postId){
+        if (!postId) {
             return res.status(404).json({
-                success:false,
-                message:"post id not found"
-            })
+                success: false,
+                message: "Post id not found"
+            });
         }
 
-        // check post exist or not
-        const postDetails = await Post.findById(
-            {_id:postId},
-        )
-        
-        if(!postDetails){
+        // check if post exists
+        const postDetails = await Post.findById(postId);
+
+        if (!postDetails) {
             return res.status(404).json({
-                success:false,
-                message:"Post not found"
-            })
+                success: false,
+                message: "Post not found"
+            });
         }
 
-        // check post owner and login user
-        postOwner = postDetails.user;
-
-        if(postOwner != userId){
-            return res.status(400).json({
-                success:true,
-                message:"You don't own this post",
-            })
+        // check post owner or admin
+        const postOwner = postDetails.user.toString(); // convert to string
+        if (postOwner !== userId && userRole.toLowerCase() !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "You don't have permission to delete this post",
+            });
         }
-
 
         // delete the post
         await Post.findByIdAndDelete(postId);
 
-        // update post schema of user
-        
-        await User.findByIdAndUpdate(userId, { $pull: { post: postId } })
+        // remove post reference from user's posts array
+        await User.findByIdAndUpdate(postOwner, { $pull: { post: postId } });
 
         // return response
         return res.status(200).json({
-            success:true,
-            message:"Post deleted successfully",
-        })
+            success: true,
+            message: "Post deleted successfully",
+        });
 
-    }
-    catch(error){
+    } catch (error) {
         console.log(error);
         return res.status(500).json({
-            success:false,
-            message:"error in deleting post, please try after some time",
+            success: false,
+            message: "Error in deleting post, please try after some time",
         });
     }
-}
+};
+
 
 exports.getUserPost = async (req,res) => {
     
@@ -303,3 +361,139 @@ exports.getUserPost = async (req,res) => {
         })
     }
 }
+
+
+
+// Controller to fetch all posts
+exports.getAllPosts = async (req, res) => {
+  try {
+    // Exclude posts created by the logged-in user
+    const posts = await Post.find({ user: { $ne: req.user._id } })
+      .populate("user", "firstName lastName images email accountType") // ✅ post author
+      .populate({
+        path: "postLikes",
+        populate: {
+          path: "user",
+          select: "firstName lastName images email", // ✅ user info in likes
+        },
+      })
+      .populate({
+        path: "postComment",
+        populate: {
+          path: "user",
+          select: "firstName lastName images email", // ✅ user info in comments
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, posts });
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+exports.getTotalPosts = async (req, res) => {
+  try {
+    // Make sure only Admin can access
+    if (req.user.accountType?.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Access denied: Admins only" });
+    }
+
+    // Count posts where user is NOT the logged-in user
+    const count = await Post.countDocuments({ user: { $ne: req.user.id } });
+    res.status(200).json({ success: true, count });
+  } catch (error) {
+    console.error("Error getting total posts:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+// Get posts of logged-in admin
+exports.getAdminPosts = async (req, res) => {
+  try {
+    const adminId = req.user.id; // from auth middleware
+
+    const posts = await Post.find({ user: adminId })
+      .populate("user", "firstName lastName images email accountType") // ✅ post author
+      .populate({
+        path: "postLikes",
+        populate: {
+          path: "user",
+          select: "firstName lastName images email", // ✅ like user info
+        },
+      })
+      .populate({
+        path: "postComment",
+        populate: {
+          path: "user",
+          select: "firstName lastName images email", // ✅ comment user info
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, posts });
+  } catch (error) {
+    console.error("Error fetching admin posts:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+// Count posts of logged-in admin
+exports.getMyPostsCount = async (req, res) => {
+  try {
+    const adminId = req.user.id; // comes from auth middleware
+    const count = await Post.countDocuments({ user: adminId });
+
+    res.status(200).json({ success: true, count });
+  } catch (error) {
+    console.error("Error counting admin posts:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+exports.getPostDetailsAdmin = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await Post.findById(postId)
+      .populate("user", "firstName lastName images") // post owner
+      .populate({
+        path: "postLikes",
+        populate: { path: "user", select: "firstName lastName images" }
+      })
+      .populate({
+        path: "postComment",
+        populate: { path: "user", select: "firstName lastName images text" }
+      });
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "post details fetched successfully",
+      data: post,
+    });
+  } catch (err) {
+    console.error("❌ Error in getPostDetails:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

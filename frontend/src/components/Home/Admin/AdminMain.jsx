@@ -1,0 +1,487 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { FiMoreVertical } from "react-icons/fi";
+import { FaRegComment, FaRegHeart } from "react-icons/fa";
+import toast from "react-hot-toast";
+
+const AdminMain = () => {
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalPosts, setTotalPosts] = useState(0);
+  const [myPostsCount, setMyPostsCount] = useState(0);
+  const [users, setUsers] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [myPosts, setMyPosts] = useState([]);
+  const [view, setView] = useState(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [expandedPosts, setExpandedPosts] = useState({});
+  const [menuOpen, setMenuOpen] = useState(null);
+
+  // Likes + Comments modals
+  const [selectedPostLikes, setSelectedPostLikes] = useState(null);
+  const [likeUsers, setLikeUsers] = useState([]);
+  const [selectedPostComments, setSelectedPostComments] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [selectedCommentId, setSelectedCommentId] = useState(null);
+
+  const navigate = useNavigate();
+  const token = localStorage.getItem("dv-token");
+
+  // Fetch counts
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const usersRes = await axios.get("http://localhost:4000/api/v1/user/count", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTotalUsers(usersRes.data.count);
+
+        const postsRes = await axios.get("http://localhost:4000/api/v1/post/posts/count", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTotalPosts(postsRes.data.count);
+
+        const myPostsRes = await axios.get("http://localhost:4000/api/v1/post/my-posts/count", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setMyPostsCount(myPostsRes.data.count);
+      } catch (err) {
+        console.error("Error fetching counts:", err);
+      }
+    };
+    fetchCounts();
+  }, [token]);
+
+  // Fetch data by view
+  const handleView = async (type) => {
+    try {
+      if (type === "users") {
+        const res = await axios.get("http://localhost:4000/api/v1/user/getAll-user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUsers(res.data.users);
+        setView("users");
+      } else if (type === "posts") {
+        const res = await axios.get("http://localhost:4000/api/v1/post/admin/getPosts", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPosts(res.data.posts);
+        setView("posts");
+      } else if (type === "myPosts") {
+        const res = await axios.get("http://localhost:4000/api/v1/post/my-posts", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setMyPosts(res.data.posts);
+        setView("myPosts");
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    }
+  };
+
+  // Delete logic
+  const openDeleteModal = (userOrPost, type) => {
+    if (type === "user") setSelectedUser(userOrPost);
+    if (type === "post") setSelectedPost(userOrPost);
+    setShowConfirmDelete(true);
+    setMenuOpen(null);
+  };
+
+  const closeDeleteModal = () => {
+    setShowConfirmDelete(false);
+    setSelectedUser(null);
+    setSelectedPost(null);
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      if (!selectedUser) return;
+      await axios.delete("http://localhost:4000/api/v1/user/delete-user", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { userId: selectedUser._id },
+      });
+      toast.success("User deleted successfully");
+      setUsers(users.filter((u) => u._id !== selectedUser._id));
+      closeDeleteModal();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete user");
+    }
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      if (!selectedPost) return;
+      await axios.delete("http://localhost:4000/api/v1/post/deletePost", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { postId: selectedPost._id },
+      });
+      toast.success("Post deleted successfully");
+      setPosts(posts.filter((p) => p._id !== selectedPost._id));
+      setMyPosts(myPosts.filter((p) => p._id !== selectedPost._id));
+      closeDeleteModal();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete post");
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await axios.delete("http://localhost:4000/api/v1/comment/delete-comment", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { commentId },
+      });
+      toast.success("Comment deleted successfully");
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      setSelectedCommentId(null);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete comment");
+    }
+  };
+
+  // Likes + Comments fetch
+  const fetchLikesUsers = (post) => {
+    if (!post.postLikes || post.postLikes.length === 0) {
+      setLikeUsers([]);
+      return;
+    }
+    const users = post.postLikes.map((like) => like.user);
+    setLikeUsers(users);
+  };
+
+  const fetchComments = (post) => {
+    if (!post.postComment || post.postComment.length === 0) {
+      setComments([]);
+      return;
+    }
+    setComments(post.postComment);
+  };
+
+  const toggleReadMore = (postId) => {
+    setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const renderMenu = (item, type) =>
+    menuOpen === item._id && (
+      <div className="absolute top-8 right-2 bg-white shadow-md border rounded-md z-20">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            openDeleteModal(item, type);
+          }}
+          className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+        >
+          Delete
+        </button>
+      </div>
+    );
+
+  const renderPostCard = (post) => (
+    <div key={post._id} className="relative border rounded-lg p-4 shadow hover:shadow-lg transition">
+      {/* 3 dots */}
+      <div
+        className="absolute top-2 right-2 cursor-pointer text-gray-600 hover:text-gray-900 z-10"
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenuOpen(menuOpen === post._id ? null : post._id);
+        }}
+      >
+        <FiMoreVertical size={20} />
+      </div>
+      {renderMenu(post, "post")}
+
+      {post.user && (
+        <div
+          className="flex items-center gap-2 mb-2 cursor-pointer"
+          onClick={() => navigate(`/admin/user/${post.user._id}`)}
+        >
+          <img
+            src={post.user.images || "/default-avatar.png"}
+            alt={`${post.user.firstName} ${post.user.lastName}`}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+          <span className="text-sm text-gray-500">
+            {post.user.firstName} {post.user.lastName}
+          </span>
+        </div>
+      )}
+
+      {post.postImage && (
+        <img
+          src={post.postImage}
+          alt={post.postTitle}
+          className="w-full h-48 object-cover rounded mb-2"
+        />
+      )}
+
+      <p className="font-bold text-lg mb-2">{post.postTitle}</p>
+
+      <p className="text-gray-700 mb-2">
+        {expandedPosts[post._id]
+          ? post.postDescription
+          : `${post.postDescription.slice(0, 100)}${
+              post.postDescription.length > 100 ? "..." : ""
+            }`}
+        {post.postDescription.length > 100 && (
+          <span
+            className="text-blue-500 cursor-pointer ml-1"
+            onClick={() => toggleReadMore(post._id)}
+          >
+            {expandedPosts[post._id] ? "Show less" : "Read more"}
+          </span>
+        )}
+      </p>
+
+      {/* Likes & Comments */}
+      <div className="flex gap-6 text-gray-600">
+        <button
+          className="flex items-center gap-2 hover:text-blue-600"
+          onClick={() => {
+            setSelectedPostLikes(post._id);
+            fetchLikesUsers(post);
+          }}
+        >
+          <FaRegHeart /> {post.postLikes?.length || 0}
+        </button>
+        <button
+          className="flex items-center gap-2 hover:text-green-600"
+          onClick={() => {
+            setSelectedPostComments(post._id);
+            fetchComments(post);
+          }}
+        >
+          <FaRegComment /> {post.postComment?.length || 0}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex-1 p-6 overflow-y-auto">
+      {/* Summary Cards */}
+      <div className="flex gap-6 mb-6">
+        <div
+          className="cursor-pointer bg-blue-500 text-white rounded-lg p-6 w-1/3 shadow-md hover:bg-blue-600"
+          onClick={() => handleView("users")}
+        >
+          <p className="text-2xl font-bold">{totalUsers}</p>
+          <p>Total Users</p>
+        </div>
+
+        <div
+          className="cursor-pointer bg-green-500 text-white rounded-lg p-6 w-1/3 shadow-md hover:bg-green-600"
+          onClick={() => handleView("posts")}
+        >
+          <p className="text-2xl font-bold">{totalPosts}</p>
+          <p>Other's Posts</p>
+        </div>
+
+        <div
+          className="cursor-pointer bg-purple-500 text-white rounded-lg p-6 w-1/3 shadow-md hover:bg-purple-600"
+          onClick={() => handleView("myPosts")}
+        >
+          <p className="text-2xl font-bold">{myPostsCount}</p>
+          <p>My Posts</p>
+        </div>
+      </div>
+
+      {/* Details Section */}
+      <div className="bg-white p-4 rounded-lg shadow-md">
+        {view === "users" && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">All Users</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {users.map((user) => (
+                <div
+                  key={user._id}
+                  className="relative border rounded-lg p-4 shadow hover:shadow-lg transition flex flex-col items-center text-center cursor-pointer"
+                  onClick={() => navigate(`/admin/user/${user._id}`)}
+                >
+                  <div
+                    className="absolute top-2 right-2 cursor-pointer text-gray-600 hover:text-gray-900 z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpen(menuOpen === user._id ? null : user._id);
+                    }}
+                  >
+                    <FiMoreVertical size={20} />
+                  </div>
+                  {renderMenu(user, "user")}
+
+                  <img
+                    src={user.images || "/default-avatar.png"}
+                    alt={`${user.firstName} ${user.lastName}`}
+                    className="w-20 h-20 rounded-full object-cover border mb-3"
+                  />
+                  <p className="font-bold text-lg">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="text-gray-600">{user.email}</p>
+                  <span className="inline-block mt-2 px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700">
+                    {user.accountType}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {view === "posts" && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Other's Posts</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {posts.map(renderPostCard)}
+            </div>
+          </div>
+        )}
+
+        {view === "myPosts" && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">My Posts</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {myPosts.map(renderPostCard)}
+            </div>
+          </div>
+        )}
+
+        {!view && <p className="text-gray-500">Click on a card above to view details</p>}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showConfirmDelete && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={closeDeleteModal}></div>
+          <div className="relative bg-white p-6 rounded-lg shadow-lg w-1/3 text-center z-50">
+            <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
+            <p className="mb-4">This action cannot be undone.</p>
+            <div className="flex justify-center gap-4">
+              <button className="px-4 py-2 bg-gray-300 rounded" onClick={closeDeleteModal}>
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded"
+                onClick={selectedUser ? handleDeleteUser : handleDeletePost}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Likes Modal */}
+      {selectedPostLikes && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => {
+              setSelectedPostLikes(null);
+              setLikeUsers([]);
+            }}
+          />
+          <div className="relative bg-white p-6 rounded-lg shadow-lg w-96 z-50">
+            <h2 className="text-xl font-bold mb-4">Liked by</h2>
+            {likeUsers.length > 0 ? (
+              <ul className="space-y-3">
+                {likeUsers.map((u) =>
+                  u ? (
+                    <li
+                      key={u._id}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 cursor-pointer"
+                      onClick={() => navigate(`/admin/user/${u._id}`)}
+                    >
+                      <img
+                        src={u.images || "/default-avatar.png"}
+                        alt={u.firstName}
+                        className="w-10 h-10 rounded-full object-cover border"
+                      />
+                      <span className="text-gray-800 font-medium">
+                        {u.firstName} {u.lastName}
+                      </span>
+                    </li>
+                  ) : (
+                    <li className="text-gray-400 italic">[Deleted User]</li>
+                  )
+                )}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No likes yet.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Comments Modal */}
+      {selectedPostComments && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => {
+              setSelectedPostComments(null);
+              setComments([]);
+            }}
+          />
+          <div className="relative bg-white p-6 rounded-lg shadow-lg w-96 z-50">
+            <h2 className="text-xl font-bold mb-4">Comments</h2>
+            {comments.length > 0 ? (
+              <ul className="space-y-3">
+                {comments.map((c) =>
+                  c.user ? (
+                    <li
+                      key={c._id}
+                      className="flex items-start justify-between gap-3 p-2 rounded hover:bg-gray-100"
+                    >
+                      <div
+                        className="flex items-center gap-3 cursor-pointer"
+                        onClick={() => navigate(`/admin/user/${c.user._id}`)}
+                      >
+                        <img
+                          src={c.user.images || "/default-avatar.png"}
+                          alt={c.user.firstName}
+                          className="w-10 h-10 rounded-full object-cover border"
+                        />
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {c.user.firstName} {c.user.lastName}
+                          </p>
+                          <p className="text-gray-600 text-sm">{c.body}</p>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <button onClick={() => setSelectedCommentId(c._id)}>
+                          <FiMoreVertical />
+                        </button>
+                        {selectedCommentId === c._id && (
+                          <div className="absolute right-0 top-6 bg-white border rounded shadow-lg z-50">
+                            <button
+                              className="px-4 py-2 text-red-600 hover:bg-red-50 w-full text-left"
+                              onClick={() => handleDeleteComment(c._id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  ) : (
+                    <li key={c._id} className="text-gray-400 italic">[Deleted User]</li>
+                  )
+                )}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No comments yet.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+
+    </div>
+  );
+};
+
+export default AdminMain;

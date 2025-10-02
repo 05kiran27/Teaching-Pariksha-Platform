@@ -13,9 +13,10 @@ import Message from './Pages/homePages/Message';
 import ReelsFeed from './components/Home/Explore/ReelsFeed';
 import Explore from './Pages/homePages/Explore';
 import Upload from './components/WebcamFeed'
-import Criminal from './components/Criminal';
-import Newsform from './components/Newsform.jsx';
-import Deepfake from './components/Deepfake.jsx';
+import AdminRoute from './components/Home/HomeMain/AdminRoute';
+import AdminPage from './Pages/homePages/AdminPage';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import AdminUserProfile from './components/Home/Admin/AdminUserProfile';
 
 
 function App() {
@@ -31,7 +32,42 @@ function App() {
         <Route path='/verify-otp' element={<VerifyOtp />} />
 
         {/* Home Route - Protected */}
-        <Route path='/' element={authUser?.success ? <Home /> : <Navigate to="/landing-page" />} />
+        {/* Home route */}
+        <Route
+          path="/"
+          element={
+            authUser?.success
+              ? authUser?.user?.accountType?.toLowerCase() === "admin"
+                ? <Navigate to="/admin" />
+                : <Home />
+              : <LandingPage />
+          }
+        />
+
+        {/* Admin route */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
+          }
+        />
+
+        {/* <Route
+          path="/admin"
+          element={
+            <ProtectedAdminRoute>
+              <AdminPage />
+            </ProtectedAdminRoute>
+          }
+        /> */}
+
+        {/* Admin User Profile */}
+        <Route path="/admin/user/:userId" element={<AdminUserProfile />} />
+
+
+
 
         {/* Auth Routes */}
         <Route path='/login' element={authUser?.success ? <Navigate to='/' /> : <Login />} />
@@ -49,15 +85,6 @@ function App() {
         <Route path='/messaging' element={authUser?.success ? <Message /> : <Navigate to="/login" />}/>
 
         <Route path='explore' element={authUser?.success ? <Explore/> : <Navigate to='/login'/>}/>
-
-        <Route path='/Upload' element = { <Deepfake/>} />
-
-        <Route path='/detect' element = { <Criminal/>}/>
-
-        <Route path='/predict ' element = {<Newsform/>}/>
-
-        <Route path='/predictions ' element = {<Deepfake/>}/>
-
 
       </Routes>
 

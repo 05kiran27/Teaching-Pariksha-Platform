@@ -10,8 +10,10 @@ import LogoutButton from '../../LogoutButton';
 import NotificationModal from './NotificationModal';
 import { MdAddModerator } from "react-icons/md";
 import useUnreadNotification from '../../../hooks/useUnreadNotification'; 
+import { useAuthContext } from '../../../context/AuthContext';
 
 const HomeSidebar = ({ onAddPostClick }) => {
+  const { authUser } = useAuthContext();
   const [isNotificationOpen, setNotificationOpen] = useState(false);
   const unreadCount = useUnreadNotification(); // Fetch unread count from the custom hook
 
@@ -66,13 +68,15 @@ const HomeSidebar = ({ onAddPostClick }) => {
         </NavLink>
 
         {/* Add Post */}
-        <div 
-          onClick={onAddPostClick} 
-          className="flex w-[180px] pr-[2px] py-[4px] gap-5 border border-transparent transition duration-300 ease-in-out transform rounded-md cursor-pointer hover:bg-gray-200"
-        >
-          <MdAddModerator className='h-[30px] w-[30px]'/>
-          <p className='text-xl font-semibold py-[2px]'>Add Post</p>
-        </div>
+        {authUser?.user?.accountType?.toLowerCase() === 'admin' && (
+          <div 
+            onClick={onAddPostClick} 
+            className="flex w-[180px] pr-[2px] py-[4px] gap-5 border border-transparent rounded-md cursor-pointer hover:bg-gray-200"
+          >
+            <MdAddModerator className='h-[30px] w-[30px]'/>
+            <p className='text-xl font-semibold py-[2px]'>Add Post</p>
+          </div>
+        )}
 
         {/* Messaging */}
         <NavLink 

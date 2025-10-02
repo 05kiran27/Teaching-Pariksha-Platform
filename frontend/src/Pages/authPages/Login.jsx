@@ -1,6 +1,4 @@
 
-
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useLogin from '../../hooks/useLogin';  // Import the login hook
@@ -11,18 +9,24 @@ import innove from '../../assets/innove.jfif';
 import invest from '../../assets/invest.jfif';
 
 const Login = () => {
-    const [inputs, setInputs] = useState({
-        email: "",
-        password: ""
-    });
+  const [inputs, setInputs] = useState({ email: "", password: "" });
+  const { loading, login } = useLogin();
+  const navigate = useNavigate();
 
-    const { loading, login } = useLogin();
-    
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const { email, password } = inputs; // Destructure email and password
-        await login(email, password);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const user = await login(inputs.email, inputs.password);
+
+    if (user) {
+      if (user.accountType?.toLowerCase() === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     }
+  };
+
+
 
     return (
         <div className='w-full h-screen bg-blue-950'>
