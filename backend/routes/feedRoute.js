@@ -8,4 +8,5 @@ const { auth } = require('../middleware/auth');
 router.get('/getFeed',auth, postFeed);
 router.get('/explore', auth, getExplore);
 
+
 module.exports = router;

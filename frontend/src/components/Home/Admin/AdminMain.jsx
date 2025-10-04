@@ -18,6 +18,8 @@ const AdminMain = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [expandedPosts, setExpandedPosts] = useState({});
   const [menuOpen, setMenuOpen] = useState(null);
+  const [loading, setLoading] = useState(false);
+
 
   // Likes + Comments modals
   const [selectedPostLikes, setSelectedPostLikes] = useState(null);
@@ -28,6 +30,16 @@ const AdminMain = () => {
 
   const navigate = useNavigate();
   const token = localStorage.getItem("dv-token");
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editPostData, setEditPostData] = useState({
+    _id: "",
+    postTitle: "",
+    postDescription: "",
+    postImage: null,
+  });
+
+
 
   // Fetch counts
   useEffect(() => {
@@ -143,6 +155,50 @@ const AdminMain = () => {
     }
   };
 
+  const handleEditPost = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true); // start loader
+      const formData = new FormData();
+      formData.append("postTitle", editPostData.postTitle);
+      formData.append("postDescription", editPostData.postDescription);
+      if (editPostData.postImage) formData.append("postImage", editPostData.postImage);
+
+      const res = await axios.put(
+        `http://localhost:4000/api/v1/post/edit/${editPostData._id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (res.data.success) {
+        toast.success("Post updated successfully");
+        setShowEditModal(false);
+
+        // Update the post in the state without reload
+        setPosts((prev) =>
+          prev.map((p) => (p._id === editPostData._id ? { ...p, ...res.data.data } : p))
+        );
+
+        setMyPosts((prev) =>
+          prev.map((p) => (p._id === editPostData._id ? { ...p, ...res.data.data } : p))
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update post");
+    } finally {
+      setLoading(false); // stop loader
+    }
+  };
+
+
+
+
   // Likes + Comments fetch
   const fetchLikesUsers = (post) => {
     if (!post.postLikes || post.postLikes.length === 0) {
@@ -166,19 +222,40 @@ const AdminMain = () => {
   };
 
   const renderMenu = (item, type) =>
-    menuOpen === item._id && (
-      <div className="absolute top-8 right-2 bg-white shadow-md border rounded-md z-20">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            openDeleteModal(item, type);
-          }}
-          className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
-        >
-          Delete
-        </button>
-      </div>
-    );
+  menuOpen === item._id && (
+    <div className="absolute top-8 right-2 bg-white shadow-md border rounded-md z-20">
+      {type === "post" && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditPostData({
+                _id: item._id,
+                postTitle: item.postTitle,
+                postDescription: item.postDescription,
+                postImage: null,
+              });
+              setShowEditModal(true);
+              setMenuOpen(null);
+            }}
+            className="block px-4 py-2 text-blue-600 hover:bg-gray-100 w-full text-left"
+          >
+            Edit
+          </button>
+        </>
+      )}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          openDeleteModal(item, type);
+        }}
+        className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+      >
+        Delete
+      </button>
+    </div>
+  );
+
 
   const renderPostCard = (post) => (
     <div key={post._id} className="relative border rounded-lg p-4 shadow hover:shadow-lg transition">
@@ -260,12 +337,13 @@ const AdminMain = () => {
     </div>
   );
 
+
   return (
     <div className="flex-1 p-6 overflow-y-auto">
       {/* Summary Cards */}
       <div className="flex gap-6 mb-6">
         <div
-          className="cursor-pointer bg-blue-500 text-white rounded-lg p-6 w-1/3 shadow-md hover:bg-blue-600"
+          className="cursor-pointer bg-blue-500 text-white rounded-lg p-6 w-1/4 shadow-md hover:bg-blue-600"
           onClick={() => handleView("users")}
         >
           <p className="text-2xl font-bold">{totalUsers}</p>
@@ -273,7 +351,7 @@ const AdminMain = () => {
         </div>
 
         <div
-          className="cursor-pointer bg-green-500 text-white rounded-lg p-6 w-1/3 shadow-md hover:bg-green-600"
+          className="cursor-pointer bg-green-500 text-white rounded-lg p-6 w-1/4 shadow-md hover:bg-green-600"
           onClick={() => handleView("posts")}
         >
           <p className="text-2xl font-bold">{totalPosts}</p>
@@ -281,13 +359,23 @@ const AdminMain = () => {
         </div>
 
         <div
-          className="cursor-pointer bg-purple-500 text-white rounded-lg p-6 w-1/3 shadow-md hover:bg-purple-600"
+          className="cursor-pointer bg-purple-500 text-white rounded-lg p-6 w-1/4 shadow-md hover:bg-purple-600"
           onClick={() => handleView("myPosts")}
         >
           <p className="text-2xl font-bold">{myPostsCount}</p>
           <p>My Posts</p>
         </div>
+
+        {/* 🆕 Feed section */}
+        <div
+          className="cursor-pointer bg-orange-500 text-white rounded-lg p-6 w-1/4 shadow-md hover:bg-orange-600"
+          onClick={() => navigate("/admin/feed")}
+        >
+          <p className="text-2xl font-bold">Feed</p>
+          <p>Manage Feeds</p>
+        </div>
       </div>
+
 
       {/* Details Section */}
       <div className="bg-white p-4 rounded-lg shadow-md">
@@ -478,6 +566,80 @@ const AdminMain = () => {
           </div>
         </div>
       )}
+
+      {showEditModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowEditModal(false)} />
+          <div className="relative bg-white p-6 rounded-lg shadow-lg w-96 z-50">
+            <h2 className="text-xl font-bold mb-4">Edit Post</h2>
+            <form onSubmit={handleEditPost} className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={editPostData.postTitle}
+                onChange={(e) => setEditPostData({ ...editPostData, postTitle: e.target.value })}
+                placeholder="Post Title"
+                className="border p-2 rounded"
+              />
+              <textarea
+                value={editPostData.postDescription}
+                onChange={(e) => setEditPostData({ ...editPostData, postDescription: e.target.value })}
+                placeholder="Post Description"
+                className="border p-2 rounded"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setEditPostData({ ...editPostData, postImage: e.target.files[0] })}
+              />
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded"
+                  disabled={loading} // disable cancel button while loading
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded flex items-center justify-center"
+                  disabled={loading} // disable submit while loading
+                >
+                  {loading ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        ></path>
+                      </svg>
+                      Updating...
+                    </>
+                  ) : (
+                    "Save"
+                  )}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
 
 
     </div>

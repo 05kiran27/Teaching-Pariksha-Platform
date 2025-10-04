@@ -1,41 +1,45 @@
 const Post = require('../models/Post');
 
 exports.postFeed = async (req, res) => {
-    try {
-        const userId = req.user.id; 
+  try {
+    const userId = req.user.id;
 
-        const posts = await Post.find()
-            .populate({
-                path: "user",
-            })
-            .sort({ createdAt: -1 });
+    // Fetch all posts with proper sorting priority:
+    // 1. Pinned posts by pinnedRank
+    // 2. Boosted posts next
+    // 3. Normal posts last
+    const posts = await Post.find()
+      .populate("user", "firstName lastName images email accountType")
+      .sort({ isPinned: -1, pinnedRank: 1, isBoosted: -1, createdAt: -1 });
 
-        if (!posts) {
-            return res.status(404).json({
-                success: false,
-                message: "No post found",
-            });
-        }
-
-        // Add userHasLiked to each post
-        const postsWithLikeStatus = posts.map(post => ({
-            ...post._doc, // Use _doc to get the plain JS object
-            userHasLiked: post.postLikes.includes(userId) // Check if user has liked the post
-        }));
-
-        return res.status(200).json({
-            success: true,
-            message: "Post fetched successfully",
-            data: postsWithLikeStatus,
-        });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Cannot get the feed",
-        });
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No posts found",
+      });
     }
+
+    // Add like status per post
+    const postsWithLikeStatus = posts.map((post) => ({
+      ...post._doc,
+      userHasLiked: post.postLikes.includes(userId),
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Feed fetched successfully",
+      data: postsWithLikeStatus,
+    });
+  } catch (error) {
+    console.error("Error in postFeed:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Cannot get the feed",
+      error: error.message,
+    });
+  }
 };
+
 
 
 
@@ -95,3 +99,5 @@ exports.getExplore = async (req, res) => {
         });
     }
 };
+
+

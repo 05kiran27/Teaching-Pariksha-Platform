@@ -17,6 +17,7 @@ import AdminRoute from './components/Home/HomeMain/AdminRoute';
 import AdminPage from './Pages/homePages/AdminPage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import AdminUserProfile from './components/Home/Admin/AdminUserProfile';
+import AdminFeed from './components/Home/Admin/AdminFeed';
 
 
 function App() {
@@ -66,7 +67,7 @@ function App() {
         {/* Admin User Profile */}
         <Route path="/admin/user/:userId" element={<AdminUserProfile />} />
 
-
+        <Route path="/admin/feed" element={<AdminFeed />} />
 
 
         {/* Auth Routes */}

@@ -226,7 +226,6 @@ exports.updatePost = async (req,res) => {
                 message:"post not found",
             })
         };
-        console.log('post details => ', postDetails);
 
         // fetch image
         image = req.files.postImage;
@@ -497,3 +496,143 @@ exports.getPostDetailsAdmin = async (req, res) => {
     });
   }
 };
+
+
+
+// Edit Post Controller
+
+exports.editPost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { postTitle, postDescription } = req.body;
+    const postImage = req.files?.postImage; // same as createPost
+
+    // Find post
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+
+    // Check only admin
+    const userId = req.user.id;
+    const userDetails = await User.findById(userId);
+    if (!userDetails || userDetails.accountType !== "Admin") {
+      return res.status(403).json({ success: false, message: "Only admins can edit posts" });
+    }
+
+    // Update fields
+    if (postTitle) post.postTitle = postTitle;
+    if (postDescription) post.postDescription = postDescription;
+
+    // Upload new image if provided
+    if (postImage) {
+      const uploaded = await uploadFileToCloudinary(postImage, process.env.FOLDER_NAME);
+      post.postImage = uploaded.secure_url;
+    }
+
+    await post.save();
+
+    // 🔹 Populate user before sending
+    const populatedPost = await Post.findById(post._id).populate("user");
+
+    return res.status(200).json({
+      success: true,
+      message: "Post updated successfully",
+      data: populatedPost,
+    });
+  } catch (error) {
+    console.error("Error editing post:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.updatePostStatus = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { isPinned, isBoosted } = req.body;
+    const userId = req.user.id;
+
+    // Ensure only admins can do this
+    const user = await User.findById(userId);
+    if (!user || user.accountType !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admins can pin or boost posts",
+      });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Update pin or boost
+    if (typeof isPinned !== "undefined") post.isPinned = isPinned;
+    if (typeof isBoosted !== "undefined") post.isBoosted = isBoosted;
+
+    await post.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Post status updated successfully",
+      data: post,
+    });
+  } catch (error) {
+    console.error("Error updating post status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while updating post status",
+    });
+  }
+};
+
+
+// ✅ Update pinned post order (Admin only)
+exports.updatePinnedOrder = async (req, res) => {
+  try {
+    const { rankedPinned } = req.body;
+    const userId = req.user.id;
+
+    // Check if admin
+    const user = await User.findById(userId);
+    if (!user || user.accountType !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admins can update pinned order",
+      });
+    }
+
+    if (!Array.isArray(rankedPinned) || rankedPinned.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid pinned post data",
+      });
+    }
+
+    // Update each pinned post’s rank
+    for (const { postId, rank } of rankedPinned) {
+      await Post.findByIdAndUpdate(postId, { pinnedRank: rank });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Pinned order updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating pinned order:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update pinned order",
+      error: error.message,
+    });
+  }
+};
+
+
