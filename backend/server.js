@@ -96,6 +96,12 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     }
 });
 
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
+});
+
 
 server.listen(PORT, () => {
     console.log(`Server started at ${PORT} `);
