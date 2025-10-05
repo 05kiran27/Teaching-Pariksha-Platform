@@ -46,7 +46,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
     cors({
-        origin:"http://localhost:3000",
+        origin: process.env.FRONTEND_URL || "http://localhost:3000",
         credentials:true,
     })
 )
@@ -71,6 +71,12 @@ app.use('/api/v1/notification', notificationRoute);
 app.use("/api/v1/quiz", quizRoute);
 app.use('/api/v1/otp', otpRoute);
 
+
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
+});
 
 // Multer setup for file uploads
 const upload = multer({ dest: "uploads/" });
