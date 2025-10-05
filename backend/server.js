@@ -96,6 +96,8 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     }
 });
 
+__dirname = path.resolve();
+
 app.use(express.static(path.join(__dirname, "frontend", "dist")));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"))
