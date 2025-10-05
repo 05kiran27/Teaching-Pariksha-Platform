@@ -15,7 +15,7 @@ const PostDetails = () => {
     const fetchPost = async () => {
       try {
         // Fetch post details from the backend using the provided route
-        const res = await fetch(`http://localhost:4000/api/v1/post/getPostDetails/${postId}`);
+        const res = await fetch(`https://dev-iu10.onrender.com/api/v1/post/getPostDetails/${postId}`);
         const data = await res.json();
 
         if (!res.ok) {
