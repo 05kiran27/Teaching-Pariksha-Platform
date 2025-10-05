@@ -11,7 +11,7 @@ const AdminFeed = () => {
   const fetchPosts = async () => {
     try {
       const token = localStorage.getItem("dv-token");
-      const res = await axios.get("http://localhost:4000/api/v1/feed/getFeed", {
+      const res = await axios.get("https://dev-iu10.onrender.com/api/v1/feed/getFeed", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -40,7 +40,7 @@ const AdminFeed = () => {
       setLoading(true);
       const token = localStorage.getItem("dv-token");
       await axios.put(
-        `http://localhost:4000/api/v1/post/updateStatus/${postId}`,
+        `https://dev-iu10.onrender.com/api/v1/post/updateStatus/${postId}`,
         { [field]: value },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -76,7 +76,7 @@ const AdminFeed = () => {
     try {
       const token = localStorage.getItem("dv-token");
       await axios.put(
-        "http://localhost:4000/api/v1/post/updatePinnedOrder",
+        "https://dev-iu10.onrender.com/api/v1/post/updatePinnedOrder",
         { rankedPinned },
         { headers: { Authorization: `Bearer ${token}` } }
       );
