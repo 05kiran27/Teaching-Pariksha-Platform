@@ -12,7 +12,7 @@ const QuizFeed = () => {
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/api/v1/quiz/getALL", {
+        const res = await axios.get("https://dev-iu10.onrender.com/api/v1/quiz/getALL", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setQuizzes(res.data.data);
