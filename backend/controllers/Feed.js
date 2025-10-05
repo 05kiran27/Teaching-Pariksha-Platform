@@ -4,13 +4,8 @@ exports.postFeed = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Fetch all posts with proper sorting priority:
-    // 1. Pinned posts by pinnedRank
-    // 2. Boosted posts next
-    // 3. Normal posts last
     const posts = await Post.find()
-      .populate("user", "firstName lastName images email accountType")
-      .sort({ isPinned: -1, pinnedRank: 1, isBoosted: -1, createdAt: -1 });
+      .populate("user", "firstName lastName images email accountType");
 
     if (!posts || posts.length === 0) {
       return res.status(404).json({
@@ -19,8 +14,33 @@ exports.postFeed = async (req, res) => {
       });
     }
 
-    // Add like status per post
-    const postsWithLikeStatus = posts.map((post) => ({
+    // Separate posts by priority
+    const pinnedAndBoosted = posts
+      .filter((p) => p.isPinned && p.isBoosted)
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    const onlyPinned = posts
+      .filter((p) => p.isPinned && !p.isBoosted)
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    const onlyBoosted = posts
+      .filter((p) => !p.isPinned && p.isBoosted)
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    const normalPosts = posts
+      .filter((p) => !p.isPinned && !p.isBoosted)
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    // Combine in order of priority
+    const sortedPosts = [
+      ...pinnedAndBoosted,
+      ...onlyPinned,
+      ...onlyBoosted,
+      ...normalPosts,
+    ];
+
+    // Add user like status
+    const postsWithLikeStatus = sortedPosts.map((post) => ({
       ...post._doc,
       userHasLiked: post.postLikes.includes(userId),
     }));
@@ -39,8 +59,6 @@ exports.postFeed = async (req, res) => {
     });
   }
 };
-
-
 
 
 exports.getExplore = async (req, res) => {

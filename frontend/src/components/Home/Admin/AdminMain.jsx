@@ -5,6 +5,7 @@ import { FiMoreVertical } from "react-icons/fi";
 import { FaRegComment, FaRegHeart } from "react-icons/fa";
 import toast from "react-hot-toast";
 
+
 const AdminMain = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
@@ -19,6 +20,13 @@ const AdminMain = () => {
   const [expandedPosts, setExpandedPosts] = useState({});
   const [menuOpen, setMenuOpen] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [quizzes, setQuizzes] = useState([]);
+  const [quizView, setQuizView] = useState("list"); // 'list' or 'create'
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // ✅
+  const [showQuizDeleteModal, setShowQuizDeleteModal] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
+
+
 
 
   // Likes + Comments modals
@@ -140,6 +148,24 @@ const AdminMain = () => {
     }
   };
 
+  const handleDeleteQuiz = async (quizId) => {
+    try {
+      setLoading(true);
+      await axios.delete(`http://localhost:4000/api/v1/quiz/delete/${quizId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Quiz deleted successfully!");
+      // Remove the deleted quiz from state
+      setQuizzes((prev) => prev.filter((q) => q._id !== quizId));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete quiz");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleDeleteComment = async (commentId) => {
     try {
       await axios.delete("http://localhost:4000/api/v1/comment/delete-comment", {
@@ -216,6 +242,43 @@ const AdminMain = () => {
     }
     setComments(post.postComment);
   };
+
+  const fetchQuizzes = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000/api/v1/quiz/getAll", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(res.data); // optional, for debugging
+      setQuizzes(res.data.data); // <-- use 'data' key
+    } catch (err) {
+      console.error("Error fetching quizzes:", err);
+      toast.error("Failed to fetch quizzes");
+    }
+  };
+
+  const confirmDeleteQuiz = async () => {
+    if (!selectedQuiz) return;
+
+    try {
+      setLoading(true);
+      await axios.delete(`http://localhost:4000/api/v1/quiz/delete/${selectedQuiz._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Quiz deleted successfully!");
+      setQuizzes((prev) => prev.filter((q) => q._id !== selectedQuiz._id));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete quiz");
+    } finally {
+      setLoading(false);
+      setShowQuizDeleteModal(false);
+      setSelectedQuiz(null);
+    }
+  };
+
+
+
+
 
   const toggleReadMore = (postId) => {
     setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
@@ -374,7 +437,114 @@ const AdminMain = () => {
           <p className="text-2xl font-bold">Feed</p>
           <p>Manage Feeds</p>
         </div>
+
+        {/* 🧠 Quiz section */}
+        <div
+          className="cursor-pointer bg-pink-500 text-white rounded-lg p-6 w-1/4 shadow-md hover:bg-pink-600 transition"
+          onClick={async () => {
+            await fetchQuizzes();
+            setView("quiz");
+            setQuizView("list"); // default to show all quizzes
+          }}
+        >
+          <p className="text-2xl font-bold">Quiz</p>
+          <p>Create or Manage Quizzes</p>
+        </div>
+
       </div>
+
+      {view === "quiz" && (
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Quizzes</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate("/admin/quiz")}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Create Quiz
+              </button>
+
+              
+
+            </div>
+          </div>
+
+          {quizView === "create" && (
+            <AdminQuizCreator /> // import this component at top
+          )}
+
+          {quizView === "list" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {quizzes.map((quiz) => (
+                <div
+                  key={quiz._id}
+                  className="relative border rounded-lg p-4 shadow hover:shadow-lg transition cursor-pointer"
+                  onClick={() => navigate(`/admin/quiz/${quiz._id}`)}
+                >
+                  {/* 3 dots menu */}
+                  <div
+                    className="absolute top-2 right-2 cursor-pointer text-gray-600 hover:text-gray-900 z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpen(menuOpen === quiz._id ? null : quiz._id);
+                    }}
+                  >
+                    <FiMoreVertical size={20} />
+                  </div>
+                  {menuOpen === quiz._id && (
+                    <div className="absolute top-8 right-2 bg-white shadow-md border rounded-md z-20">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/admin/quiz/${quiz._id}`);
+                          setMenuOpen(null);
+                        }}
+                        className="block px-4 py-2 text-blue-600 hover:bg-gray-100 w-full text-left"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedQuiz(quiz); // store the clicked quiz
+                          setShowQuizDeleteModal(true); // open modal
+                          setMenuOpen(null);
+                        }}
+                        className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                      >
+                        Delete
+                      </button>
+
+                    </div>
+                  )}
+
+                  {/* Quiz creator */}
+                  {quiz.createdBy && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <img
+                        src={quiz.createdBy.images || "/default-avatar.png"}
+                        alt={`${quiz.createdBy.firstName} ${quiz.createdBy.lastName}`}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <span className="text-sm text-gray-600">
+                        {quiz.createdBy.firstName} {quiz.createdBy.lastName}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Quiz title and question count */}
+                  <p className="font-bold text-lg">{quiz.title}</p>
+                  <p className="text-gray-500 text-sm mt-1">{quiz.questions.length} questions</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+
+        </div>
+      )}
+
 
 
       {/* Details Section */}
@@ -636,6 +806,35 @@ const AdminMain = () => {
               </div>
 
             </form>
+          </div>
+        </div>
+      )}
+
+      {showQuizDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setShowQuizDeleteModal(false)}
+          ></div>
+          <div className="relative bg-white p-6 rounded-lg shadow-lg w-1/3 text-center z-50">
+            <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
+            <p className="mb-4">
+              Do you really want to delete the quiz "{selectedQuiz?.title}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setShowQuizDeleteModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded"
+                onClick={confirmDeleteQuiz}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

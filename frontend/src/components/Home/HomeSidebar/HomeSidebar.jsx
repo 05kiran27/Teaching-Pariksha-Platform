@@ -106,6 +106,23 @@ const HomeSidebar = ({ onAddPostClick }) => {
             </span>
           )}
         </div>
+
+        {/* Quiz - for normal users only */}
+        {authUser?.user?.accountType?.toLowerCase() !== 'admin' && (
+          <NavLink 
+            to="/quiz" 
+            className={({ isActive }) => 
+              `flex w-[180px] pr-[2px] py-[4px] gap-5 border border-transparent transition duration-300 ease-in-out transform rounded-md cursor-pointer hover:bg-gray-200 ${
+                isActive ? 'bg-gray-200' : ''
+              }`
+            }
+          >
+            <MdOutlineTravelExplore className='h-[30px] w-[30px]' />
+            <p className='text-xl font-semibold py-[2px]'>Quiz</p>
+          </NavLink>
+        )}
+
+
       </div>
 
       {/* Bottom home sidebar */}

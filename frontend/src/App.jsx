@@ -18,6 +18,12 @@ import AdminPage from './Pages/homePages/AdminPage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import AdminUserProfile from './components/Home/Admin/AdminUserProfile';
 import AdminFeed from './components/Home/Admin/AdminFeed';
+import AdminQuizCreator from './components/Home/Admin/AdminQuizCreator';
+import AdminQuizDetail from './components/Home/Admin/AdminQuizDetail';
+import AdminQuizEdit from './components/Home/Admin/AdminQuizEdit';
+import QuizFeed from './components/Home/HomeMain/QuizFeed';
+import QuizDetail from './components/Home/HomeMain/QuizDetail';
+import HomeLayout from './components/Home/HomeMain/HomeLayout';
 
 
 function App() {
@@ -68,6 +74,30 @@ function App() {
         <Route path="/admin/user/:userId" element={<AdminUserProfile />} />
 
         <Route path="/admin/feed" element={<AdminFeed />} />
+        <Route path="/admin/quiz" element={<AdminQuizCreator />} />
+        <Route path="/admin/quiz/:quizId" element={<AdminQuizDetail />} />
+        <Route path="/admin/quiz/edit/:quizId" element={<AdminQuizEdit />} />
+
+
+
+        <Route
+          path="/quiz"
+          element={
+            <HomeLayout>
+              <QuizFeed />
+            </HomeLayout>
+          }
+        />
+        <Route
+          path="/quiz/:id"
+          element={
+            <HomeLayout>
+              <QuizDetail />
+            </HomeLayout>
+          }
+        />
+
+
 
 
         {/* Auth Routes */}

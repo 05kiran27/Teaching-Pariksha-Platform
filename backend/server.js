@@ -27,6 +27,8 @@ const shareRoute = require('./routes/shareRoute');
 const connection = require('./routes/connection');
 const message = require('./routes/messageRoute');
 const notificationRoute = require('./routes/notificationRoute');
+const quizRoute = require('./routes/quizRoute')
+const otpRoute = require('./routes/otpRoute');
 
 const {app, server} = require('./Socket/socket');
 
@@ -66,6 +68,8 @@ app.use('/api/v1/share', shareRoute);
 app.use('/api/v1/connect', connection)
 app.use('/api/v1/messages', message);
 app.use('/api/v1/notification', notificationRoute);
+app.use("/api/v1/quiz", quizRoute);
+app.use('/api/v1/otp', otpRoute);
 
 
 // Multer setup for file uploads
