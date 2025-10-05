@@ -46,7 +46,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
     cors({
-        origin:"https://teachingpariksha.onrender.com/",
+        origin:'http://localhost:5000',
         credentials:true,
     })
 )
