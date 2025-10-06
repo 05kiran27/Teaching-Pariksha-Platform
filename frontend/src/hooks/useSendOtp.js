@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useSendOtp = () => {
     const [loading, setLoading] = useState(false);
 
@@ -8,7 +10,7 @@ const useSendOtp = () => {
         setLoading(true);
         try {
             // Call the backend API to send OTP
-            await axios.post('http://localhost:4000/api/v1/auth/sendOtp', userData);
+            await axios.post(`${BACKEND_URL}/api/v1/auth/sendOtp`, userData);
             setLoading(false);
             return true;
         } catch (error) {

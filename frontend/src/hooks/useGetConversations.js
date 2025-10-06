@@ -74,6 +74,7 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuthContext } from '../context/AuthContext';
 import { useSocketContext } from '../context/SocketContext'; // Import socket context
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useGetConversations = () => {
   const [loading, setLoading] = useState(false);
@@ -92,7 +93,7 @@ const useGetConversations = () => {
         throw new Error('Token not found');
       }
 
-      const res = await fetch('http://localhost:4000/api/v1/messages/message', {
+      const res = await fetch(`${BACKEND_URL}/api/v1/messages/message`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

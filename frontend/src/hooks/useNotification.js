@@ -91,6 +91,7 @@
 // /hooks/useNotification.js
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useNotification = (isOpen) => {
   const [notifications, setNotifications] = useState({
@@ -105,13 +106,13 @@ const useNotification = (isOpen) => {
       setNotifications((prevState) => ({ ...prevState, loading: true }));
       try {
         // Fetch notifications with pagination, including sender details (profilePic, name)
-        const notificationResponse = await axios.get('http://localhost:4000/api/v1/notification/notifications?page=1&limit=10', {
+        const notificationResponse = await axios.get(`${BACKEND_URL}/api/v1/notification/notifications?page=1&limit=10`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('dv-token')}`,
           },
         });
 
-        const unreadResponse = await axios.get('http://localhost:4000/api/v1/notification/notifications/unread-count', {
+        const unreadResponse = await axios.get(`${BACKEND_URL}/api/v1/notification/notifications/unread-count`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('dv-token')}`,
           },
@@ -151,7 +152,7 @@ const useNotification = (isOpen) => {
         const token = localStorage.getItem('dv-token');
     
         await axios.patch(
-          'http://localhost:4000/api/v1/notification/notifications/mark-as-read', 
+          `${BACKEND_URL}/api/v1/notification/notifications/mark-as-read`, 
           {}, 
           {
             headers: {

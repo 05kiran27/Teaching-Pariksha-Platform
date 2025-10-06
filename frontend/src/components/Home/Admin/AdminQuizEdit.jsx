@@ -4,6 +4,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const AdminQuizEdit = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ const AdminQuizEdit = () => {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const res = await axios.get(`https://dev-iu10.onrender.com/api/v1/quiz/${quizId}`, {
+        const res = await axios.get(`${BACKEND_URL}/api/v1/quiz/${quizId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const formattedQuestions = res.data.data.questions.map((q) => ({
@@ -92,7 +94,7 @@ const AdminQuizEdit = () => {
     setLoading(true);
     try {
       await axios.put(
-        `https://dev-iu10.onrender.com/api/v1/quiz/update/${quizId}`,
+        `${BACKEND_URL}/api/v1/quiz/update/${quizId}`,
         quiz,
         { headers: { Authorization: `Bearer ${token}` } }
       );

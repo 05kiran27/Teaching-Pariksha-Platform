@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useGetComments = (postId) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -12,7 +14,7 @@ const useGetComments = (postId) => {
       setLoading(true);
       try {
         const token = localStorage.getItem('dv-token');
-        const res = await fetch(`http://localhost:4000/api/v1/comment/comments/${postId}`, {
+        const res = await fetch(`${BACKEND_URL}/api/v1/comment/comments/${postId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

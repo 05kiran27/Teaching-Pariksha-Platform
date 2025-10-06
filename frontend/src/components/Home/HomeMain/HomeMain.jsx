@@ -8,6 +8,8 @@ import HomeHeader from './HomeHeader';
 import HomeSidebar from '../HomeSidebar/HomeSidebar'; 
 import AddPostForm from '../../Post/AddPostForm'; 
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const HomeMain = () => {
   const { loading: feedLoading, feed } = useGetFeed();
   const { profile, loading: profileLoading } = useGetUserProfile(); 
@@ -30,7 +32,7 @@ const HomeMain = () => {
     if (postId) {
       const fetchHighlightedPost = async () => {
         try {
-          const res = await fetch(`https://dev-iu10.onrender.com/api/v1/post/getPostDetails/${postId}`);
+          const res = await fetch(`${BACKEND_URL}/api/v1/post/getPostDetails/${postId}`);
           const data = await res.json();
           if (res.ok && data.success) {
             setHighlightedPost(data.data);

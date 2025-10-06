@@ -1,5 +1,6 @@
 // hooks/useGetUserProfile.js
 import { useState, useEffect } from 'react';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useGetUserProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -14,7 +15,7 @@ const useGetUserProfile = () => {
       // console.log("logged in user id => ", userId);
       try {
         const token = localStorage.getItem('dv-token');
-        const res = await fetch(`http://localhost:4000/api/v1/user/get-profile/${userId}`, {
+        const res = await fetch(`${BACKEND_URL}/api/v1/user/get-profile/${userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

@@ -65,6 +65,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAuthContext } from "./AuthContext";
 import { io } from "socket.io-client"; // Import `io` from socket.io-client
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Create a context for the socket
 const SocketContext = createContext(); 
@@ -83,7 +84,7 @@ export const SocketContextProvider = ({ children }) => {
     useEffect(() => {
         // Initialize socket connection if authUser exists
         if (authUser) {
-            const socketInstance = io("http://localhost:4000", {
+            const socketInstance = io("${BACKEND_URL}", {
                 query: {
                     userId: authUser.user._id, // Pass user ID to socket server
                 }

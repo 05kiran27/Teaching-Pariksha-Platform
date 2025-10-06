@@ -2,6 +2,8 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuthContext } from '../context/AuthContext';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useSignup = () => {
   const [loading, setLoading] = useState(false);
   const { setAuthUser } = useAuthContext(); // Use the setter for authUser
@@ -12,7 +14,7 @@ const useSignup = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:4000/api/v1/auth/signup", {
+      const res = await fetch(`${BACKEND_URL}/api/v1/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, confirmPassword, accountType, otp }),

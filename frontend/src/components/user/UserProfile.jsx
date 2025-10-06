@@ -9,6 +9,8 @@ import Post from '../Post/Post';
 import useConversation from '../../zustand/useConversation';  // Import useConversation
 import toast from 'react-hot-toast';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const UserProfile = () => {
   const { profile, loading, error } = useProfile();
   const { authUser: loggedInUser } = useAuthContext();
@@ -43,7 +45,7 @@ const UserProfile = () => {
       const profileId = profile._id;  // The ID of the profile the user wants to message
   
       // Step 1: Check if a conversation exists
-      const checkConversationRes = await fetch(`https://dev-iu10.onrender.com/api/v1/messages/conversations/check/${profileId}`, {
+      const checkConversationRes = await fetch(`${BACKEND_URL}/api/v1/messages/conversations/check/${profileId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +76,7 @@ const UserProfile = () => {
       }
   
       // Step 2: If no conversation exists, send the "Hey there" message to create a conversation
-      const createConversationRes = await fetch(`https://dev-iu10.onrender.com/api/v1/messages/message/send/${profileId}`, {
+      const createConversationRes = await fetch(`${BACKEND_URL}/api/v1/messages/message/send/${profileId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

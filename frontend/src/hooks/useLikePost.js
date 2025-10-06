@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useLikePost = () => {
   const [loading, setLoading] = useState(false);
@@ -15,7 +16,7 @@ const useLikePost = () => {
     try {
       const token = localStorage.getItem('dv-token');
 
-      const res = await fetch('http://localhost:4000/api/v1/like/like', {
+      const res = await fetch(`${BACKEND_URL}/api/v1/like/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

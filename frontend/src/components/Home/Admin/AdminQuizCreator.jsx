@@ -4,6 +4,8 @@ import toast from "react-hot-toast";
 import { PlusCircle, CheckCircle, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom"; // ✅ added for redirect
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const AdminQuizCreator = () => {
   const token = localStorage.getItem("dv-token");
   const navigate = useNavigate(); // ✅ initialize navigation
@@ -85,7 +87,7 @@ const AdminQuizCreator = () => {
     try {
       setLoading(true);
       const res = await axios.post(
-        "https://dev-iu10.onrender.com/api/v1/quiz/create",
+        `${BACKEND_URL}/api/v1/quiz/create`,
         { title, questions: cleanedQuestions },
         { headers: { Authorization: `Bearer ${token}` } }
       );

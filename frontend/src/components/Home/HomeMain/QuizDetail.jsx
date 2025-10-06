@@ -3,6 +3,8 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const QuizDetail = () => {
   const { id } = useParams(); // <--- get quizId from URL
   const [quiz, setQuiz] = useState(null);
@@ -18,7 +20,7 @@ const QuizDetail = () => {
       try {
         const token = localStorage.getItem("dv-token");
         const res = await axios.get(
-          `https://dev-iu10.onrender.com/api/v1/quiz/${id}`, // use id from useParams
+          `${BACKEND_URL}/api/v1/quiz/${id}`, // use id from useParams
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setQuiz(res.data.data);

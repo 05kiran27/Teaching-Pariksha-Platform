@@ -1,6 +1,8 @@
 // hooks/useShare.js
 import { useState } from 'react';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useShare = () => {
   const [shareLink, setShareLink] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,7 +14,7 @@ const useShare = () => {
     try {
       const token = localStorage.getItem('dv-token');
 
-      const res = await fetch(`http://localhost:4000/api/v1/share/share/${postId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/share/share/${postId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

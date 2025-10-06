@@ -5,6 +5,8 @@ import { FiMoreVertical } from "react-icons/fi";
 import { FaRegComment, FaRegHeart } from "react-icons/fa";
 import toast from "react-hot-toast";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const AdminUserProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -38,7 +40,7 @@ const AdminUserProfile = () => {
 
       // Fetch user profile
       const res = await axios.get(
-        `https://dev-iu10.onrender.com/api/v1/user/get-profile/${userId}`,
+        `http://localhost:4000/api/v1/user/get-profile/${userId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -51,7 +53,7 @@ const AdminUserProfile = () => {
           const postId = post._id || post; // use _id if object, otherwise treat as ID
           return axios
             .get(
-              `https://dev-iu10.onrender.com/api/v1/post/getPostDetailsAdmin/${postId}`,
+              `${BACKEND_URL}/api/v1/post/getPostDetailsAdmin/${postId}`,
               { headers: { Authorization: `Bearer ${token}` } }
             )
             .then((res) => res.data.data);
@@ -75,7 +77,7 @@ const AdminUserProfile = () => {
   // Delete user
   const handleDeleteUser = async () => {
     try {
-      await axios.delete("https://dev-iu10.onrender.com/api/v1/user/delete-user", {
+      await axios.delete(`${BACKEND_URL}/api/v1/user/delete-user`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { userId },
       });
@@ -91,7 +93,7 @@ const AdminUserProfile = () => {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await axios.delete("https://dev-iu10.onrender.com/api/v1/comment/delete-comment", {
+      await axios.delete(`${BACKEND_URL}/api/v1/comment/delete-comment`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { commentId },
       });

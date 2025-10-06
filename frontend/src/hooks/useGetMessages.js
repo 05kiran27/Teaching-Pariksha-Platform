@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'; // Add useEffect to imports
 import toast from 'react-hot-toast';
 import useConversation from '../zustand/useConversation';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useGetMessages = () => {
     const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ const useGetMessages = () => {
             try {
                 // You should retrieve the token here (e.g., from localStorage)
                 const token = localStorage.getItem('dv-token');
-                const res = await fetch(`http://localhost:4000/api/v1/messages/message/${selectedConversation._id}`, {
+                const res = await fetch(`${BACKEND_URL}/api/v1/messages/message/${selectedConversation._id}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

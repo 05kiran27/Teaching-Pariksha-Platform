@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import { FaThumbsUp, FaRegCommentAlt, FaShare } from 'react-icons/fa';
 import { FaThumbsUp as FaThumbsUpFilled } from 'react-icons/fa';  // Filled thumbs-up icon
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const ReelsFeed = () => {
   const { posts, setPosts, loading, error, loadMorePosts } = useExplorePosts();
   const observer = useRef();
@@ -99,7 +101,7 @@ const ReelsFeed = () => {
       const token = localStorage.getItem('dv-token');
 
       const res = await axios.post(
-        `https://dev-iu10.onrender.com/api/v1/comment/comment`,
+        `${BACKEND_URL}/api/v1/comment/comment`,
         { postId, body: newComment },
         {
           headers: {

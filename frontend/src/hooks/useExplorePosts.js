@@ -54,6 +54,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useExplorePosts = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -67,7 +69,7 @@ const useExplorePosts = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`http://localhost:4000/api/v1/feed/explore?limit=10&page=${page}`, {
+        const response = await axios.get(`${BACKEND_URL}/api/v1/feed/explore?limit=10&page=${page}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('dv-token')}`,
           },

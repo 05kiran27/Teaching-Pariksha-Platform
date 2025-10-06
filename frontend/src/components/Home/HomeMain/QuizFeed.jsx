@@ -3,6 +3,8 @@ import axios from "axios";
 import { useAuthContext } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const QuizFeed = () => {
   const [quizzes, setQuizzes] = useState([]);
   const { authUser } = useAuthContext();
@@ -12,7 +14,7 @@ const QuizFeed = () => {
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-        const res = await axios.get("https://dev-iu10.onrender.com/api/v1/quiz/getALL", {
+        const res = await axios.get(`${BACKEND_URL}/api/v1/quiz/getALL`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setQuizzes(res.data.data);

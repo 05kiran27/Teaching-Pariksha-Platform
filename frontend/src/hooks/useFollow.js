@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useFollowContext } from '../context/FollowContext';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useFollow = (currentUserId, ownerId) => {
   const { followStatus, updateFollowStatus } = useFollowContext(); // Global follow status from context
@@ -16,7 +17,7 @@ const useFollow = (currentUserId, ownerId) => {
       const checkFollowStatus = async () => {
         setIsChecking(true);
         try {
-          const response = await axios.get(`http://localhost:4000/api/v1/connect/user/${currentUserId}/isFollow/${ownerId}`);
+          const response = await axios.get(`${BACKEND_URL}/api/v1/connect/user/${currentUserId}/isFollow/${ownerId}`);
           updateFollowStatus(ownerId, response.data.isFollowing); // Update context with follow status
         } catch (err) {
           setError(err.response ? err.response.data.message : 'An error occurred');
@@ -37,7 +38,7 @@ const useFollow = (currentUserId, ownerId) => {
     setIsChecking(true);
     try {
       // Send follow/unfollow request
-      const response = await axios.post(`http://localhost:4000/api/v1/connect/user/${currentUserId}/follow/${ownerId}`);
+      const response = await axios.post(`${BACKEND_URL}/api/v1/connect/user/${currentUserId}/follow/${ownerId}`);
       updateFollowStatus(ownerId, !isFollowing); // Toggle status in context
       return response.data;
     } catch (err) {

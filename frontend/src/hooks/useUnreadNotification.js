@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useUnreadNotification = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/v1/notification/notifications/unread-count', {
+        const response = await axios.get(`${BACKEND_URL}/api/v1/notification/notifications/unread-count`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('dv-token')}`,
           },

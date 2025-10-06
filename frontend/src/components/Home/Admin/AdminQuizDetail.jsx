@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 import { FiMoreVertical } from "react-icons/fi";
 import { v4 as uuidv4 } from "uuid";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const AdminQuizDetail = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const AdminQuizDetail = () => {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const res = await axios.get(`https://dev-iu10.onrender.com/api/v1/quiz/${quizId}`, {
+        const res = await axios.get(`${BACKEND_URL}/api/v1/quiz/${quizId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const formatted = {
@@ -46,7 +48,7 @@ const AdminQuizDetail = () => {
     try {
       setLoading(true);
       await axios.put(
-        `https://dev-iu10.onrender.com/api/v1/quiz/update/${quizId}`,
+        `${BACKEND_URL}/api/v1/quiz/update/${quizId}`,
         editQuizData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -66,7 +68,7 @@ const AdminQuizDetail = () => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      await axios.delete(`https://dev-iu10.onrender.com/api/v1/quiz/delete/${quizId}`, {
+      await axios.delete(`${BACKEND_URL}/api/v1/quiz/delete/${quizId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Quiz deleted successfully!");

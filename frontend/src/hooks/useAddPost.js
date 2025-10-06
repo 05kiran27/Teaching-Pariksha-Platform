@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useAddPost = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,7 +18,7 @@ const useAddPost = () => {
       formData.append('postDescription', postDescription);
       formData.append('thumbnailImage', thumbnailImage);
 
-      const res = await fetch('http://localhost:4000/api/v1/post/createPost', {
+      const res = await fetch('${BACKEND_URL}/api/v1/post/createPost', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

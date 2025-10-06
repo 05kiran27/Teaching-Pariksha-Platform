@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
 import useShare from '../../hooks/useShare'; // Import the useShare hook
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const PostDetails = () => {
   const { postId } = useParams(); // Extract the postId from the URL
   const [post, setPost] = useState(null);
@@ -15,7 +17,7 @@ const PostDetails = () => {
     const fetchPost = async () => {
       try {
         // Fetch post details from the backend using the provided route
-        const res = await fetch(`https://dev-iu10.onrender.com/api/v1/post/getPostDetails/${postId}`);
+        const res = await fetch(`${BACKEND_URL}/api/v1/post/getPostDetails/${postId}`);
         const data = await res.json();
 
         if (!res.ok) {

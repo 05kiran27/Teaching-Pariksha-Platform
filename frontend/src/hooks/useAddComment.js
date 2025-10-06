@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useAddComment = () => {
   const [loading, setLoading] = useState(false);
 
@@ -9,7 +11,7 @@ const useAddComment = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('dv-token');
-      const response = await fetch('http://localhost:4000/api/v1/comment/comment', {
+      const response = await fetch('${BACKEND_URL}/api/v1/comment/comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

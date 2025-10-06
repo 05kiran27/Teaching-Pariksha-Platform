@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import useConversation from '../zustand/useConversation';
 import toast from 'react-hot-toast';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const useSendMessage = () => {
     const [loading, setLoading] = useState(false);
     const { messages, setMessages, selectedConversation } = useConversation();
@@ -13,7 +15,7 @@ const useSendMessage = () => {
             const token = localStorage.getItem('dv-token');
             if (!token) throw new Error('Token not found in useSendMessage hook');
 
-            const res = await fetch(`http://localhost:4000/api/v1/messages/message/send/${selectedConversation._id}`, {
+            const res = await fetch(`${BACKEND_URL}/api/v1/messages/message/send/${selectedConversation._id}`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
