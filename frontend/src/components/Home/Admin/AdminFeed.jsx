@@ -2,23 +2,32 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { MoreVertical, ArrowUp, ArrowDown } from "lucide-react";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+
 const AdminFeed = () => {
   const [posts, setPosts] = useState([]);
   const [menuOpen, setMenuOpen] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Fetch posts
+
   const fetchPosts = async () => {
     try {
       const token = localStorage.getItem("dv-token");
-      const res = await axios.get("http://localhost:4000/api/v1/feed/getFeed", {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/feed/getFeed`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Sort pinned first by rank (or createdAt for new pins)
-      const sorted = res.data.data.sort((a, b) => {
+      console.log("Feed API response:", res.data);
+
+      // ✅ Get the array of posts safely
+      const postsArray = Array.isArray(res.data?.data) ? res.data.data : [];
+
+      // ✅ Sort pinned posts first, by pinnedRank
+      const sorted = postsArray.sort((a, b) => {
         if (a.isPinned && b.isPinned) {
-          return (a.rank || 0) - (b.rank || 0); // default 0 if rank missing
+          return (a.pinnedRank || 0) - (b.pinnedRank || 0);
         } else if (a.isPinned) return -1;
         else if (b.isPinned) return 1;
         return 0;
@@ -30,6 +39,7 @@ const AdminFeed = () => {
     }
   };
 
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -40,7 +50,7 @@ const AdminFeed = () => {
       setLoading(true);
       const token = localStorage.getItem("dv-token");
       await axios.put(
-        `http://localhost:4000/api/v1/post/updateStatus/${postId}`,
+        `${BACKEND_URL}/api/v1/post/updateStatus/${postId}`,
         { [field]: value },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -76,7 +86,7 @@ const AdminFeed = () => {
     try {
       const token = localStorage.getItem("dv-token");
       await axios.put(
-        "http://localhost:4000/api/v1/post/updatePinnedOrder",
+        `${BACKEND_URL}/api/v1/post/updatePinnedOrder`,
         { rankedPinned },
         { headers: { Authorization: `Bearer ${token}` } }
       );

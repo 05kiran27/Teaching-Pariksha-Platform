@@ -5,6 +5,8 @@ import { FiMoreVertical } from "react-icons/fi";
 import { FaRegComment, FaRegHeart } from "react-icons/fa";
 import toast from "react-hot-toast";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 
 const AdminMain = () => {
   const [totalUsers, setTotalUsers] = useState(0);
@@ -53,17 +55,17 @@ const AdminMain = () => {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const usersRes = await axios.get("http://localhost:4000/api/v1/user/count", {
+        const usersRes = await axios.get(`${BACKEND_URL}/api/v1/user/count`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTotalUsers(usersRes.data.count);
 
-        const postsRes = await axios.get("http://localhost:4000/api/v1/post/posts/count", {
+        const postsRes = await axios.get(`${BACKEND_URL}/api/v1/post/posts/count`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTotalPosts(postsRes.data.count);
 
-        const myPostsRes = await axios.get("http://localhost:4000/api/v1/post/my-posts/count", {
+        const myPostsRes = await axios.get(`${BACKEND_URL}/api/v1/post/my-posts/count`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMyPostsCount(myPostsRes.data.count);
@@ -78,19 +80,19 @@ const AdminMain = () => {
   const handleView = async (type) => {
     try {
       if (type === "users") {
-        const res = await axios.get("http://localhost:4000/api/v1/user/getAll-user", {
+        const res = await axios.get(`${BACKEND_URL}/api/v1/user/getAll-user`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(res.data.users);
         setView("users");
       } else if (type === "posts") {
-        const res = await axios.get("http://localhost:4000/api/v1/post/admin/getPosts", {
+        const res = await axios.get(`${BACKEND_URL}/api/v1/post/admin/getPosts`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPosts(res.data.posts);
         setView("posts");
       } else if (type === "myPosts") {
-        const res = await axios.get("http://localhost:4000/api/v1/post/my-posts", {
+        const res = await axios.get(`${BACKEND_URL}/api/v1/post/my-posts`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMyPosts(res.data.posts);
@@ -118,7 +120,7 @@ const AdminMain = () => {
   const handleDeleteUser = async () => {
     try {
       if (!selectedUser) return;
-      await axios.delete("http://localhost:4000/api/v1/user/delete-user", {
+      await axios.delete(`${BACKEND_URL}/api/v1/user/delete-user`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { userId: selectedUser._id },
       });
@@ -134,7 +136,7 @@ const AdminMain = () => {
   const handleDeletePost = async () => {
     try {
       if (!selectedPost) return;
-      await axios.delete("http://localhost:4000/api/v1/post/deletePost", {
+      await axios.delete(`${BACKEND_URL}/api/v1/post/deletePost`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { postId: selectedPost._id },
       });
@@ -151,7 +153,7 @@ const AdminMain = () => {
   const handleDeleteQuiz = async (quizId) => {
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:4000/api/v1/quiz/delete/${quizId}`, {
+      await axios.delete(`${BACKEND_URL}/api/v1/quiz/delete/${quizId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Quiz deleted successfully!");
@@ -168,7 +170,7 @@ const AdminMain = () => {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await axios.delete("http://localhost:4000/api/v1/comment/delete-comment", {
+      await axios.delete(`${BACKEND_URL}/api/v1/comment/delete-comment`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { commentId },
       });
@@ -191,7 +193,7 @@ const AdminMain = () => {
       if (editPostData.postImage) formData.append("postImage", editPostData.postImage);
 
       const res = await axios.put(
-        `http://localhost:4000/api/v1/post/edit/${editPostData._id}`,
+        `${BACKEND_URL}/api/v1/post/edit/${editPostData._id}`,
         formData,
         {
           headers: {
@@ -245,7 +247,7 @@ const AdminMain = () => {
 
   const fetchQuizzes = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/v1/quiz/getAll", {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/quiz/getAll`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log(res.data); // optional, for debugging
@@ -261,7 +263,7 @@ const AdminMain = () => {
 
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:4000/api/v1/quiz/delete/${selectedQuiz._id}`, {
+      await axios.delete(`${BACKEND_URL}/api/v1/quiz/delete/${selectedQuiz._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Quiz deleted successfully!");
