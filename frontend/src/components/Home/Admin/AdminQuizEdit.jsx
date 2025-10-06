@@ -19,7 +19,7 @@ const AdminQuizEdit = () => {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/v1/quiz/${quizId}`, {
+        const res = await axios.get(`https://dev-iu10.onrender.com/api/v1/quiz/${quizId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const formattedQuestions = res.data.data.questions.map((q) => ({
@@ -92,7 +92,7 @@ const AdminQuizEdit = () => {
     setLoading(true);
     try {
       await axios.put(
-        `http://localhost:4000/api/v1/quiz/update/${quizId}`,
+        `https://dev-iu10.onrender.com/api/v1/quiz/update/${quizId}`,
         quiz,
         { headers: { Authorization: `Bearer ${token}` } }
       );

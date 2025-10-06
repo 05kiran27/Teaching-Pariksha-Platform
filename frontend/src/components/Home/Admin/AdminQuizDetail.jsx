@@ -21,7 +21,7 @@ const AdminQuizDetail = () => {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/v1/quiz/${quizId}`, {
+        const res = await axios.get(`https://dev-iu10.onrender.com/api/v1/quiz/${quizId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const formatted = {
@@ -46,7 +46,7 @@ const AdminQuizDetail = () => {
     try {
       setLoading(true);
       await axios.put(
-        `http://localhost:4000/api/v1/quiz/update/${quizId}`,
+        `https://dev-iu10.onrender.com/api/v1/quiz/update/${quizId}`,
         editQuizData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -66,7 +66,7 @@ const AdminQuizDetail = () => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:4000/api/v1/quiz/delete/${quizId}`, {
+      await axios.delete(`https://dev-iu10.onrender.com/api/v1/quiz/delete/${quizId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Quiz deleted successfully!");

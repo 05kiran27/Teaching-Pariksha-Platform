@@ -99,7 +99,7 @@ const ReelsFeed = () => {
       const token = localStorage.getItem('dv-token');
 
       const res = await axios.post(
-        `http://localhost:4000/api/v1/comment/comment`,
+        `https://dev-iu10.onrender.com/api/v1/comment/comment`,
         { postId, body: newComment },
         {
           headers: {

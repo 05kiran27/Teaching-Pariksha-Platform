@@ -30,7 +30,7 @@ const HomeMain = () => {
     if (postId) {
       const fetchHighlightedPost = async () => {
         try {
-          const res = await fetch(`http://localhost:4000/api/v1/post/getPostDetails/${postId}`);
+          const res = await fetch(`https://dev-iu10.onrender.com/api/v1/post/getPostDetails/${postId}`);
           const data = await res.json();
           if (res.ok && data.success) {
             setHighlightedPost(data.data);

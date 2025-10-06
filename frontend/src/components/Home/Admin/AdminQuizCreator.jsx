@@ -85,7 +85,7 @@ const AdminQuizCreator = () => {
     try {
       setLoading(true);
       const res = await axios.post(
-        "http://localhost:4000/api/v1/quiz/create",
+        "https://dev-iu10.onrender.com/api/v1/quiz/create",
         { title, questions: cleanedQuestions },
         { headers: { Authorization: `Bearer ${token}` } }
       );
