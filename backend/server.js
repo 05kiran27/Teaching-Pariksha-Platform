@@ -1,3 +1,4 @@
+
 const express = require('express');
 const connect = require('./config/dbConnect');
 // const app = express();
@@ -46,7 +47,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL || "http://localhost:3000",
+        origin:'http://localhost:5000',
         credentials:true,
     })
 )
@@ -71,12 +72,6 @@ app.use('/api/v1/notification', notificationRoute);
 app.use("/api/v1/quiz", quizRoute);
 app.use('/api/v1/otp', otpRoute);
 
-
-app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
-});
 
 // Multer setup for file uploads
 const upload = multer({ dest: "uploads/" });
@@ -117,12 +112,3 @@ server.listen(PORT, () => {
 // database connection
 connect();
 cloudinaryConnect();
-
-
-
-
-
-
-
-
-
